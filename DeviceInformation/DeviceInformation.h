@@ -25,8 +25,11 @@ namespace MOONG
 	public:
 		static const std::string getHDDSerial();
 		static const std::string getProcessorInformation();
-		static const std::string getRAMSize();
-		static const std::string getHDDSize();
+		static const ULONGLONG getRAMSize();
+		static const ULONGLONG getHDDTotalSize(std::string drive);
+		static const ULONGLONG getHDDAvailableSize(std::string drive);
+		static const ULONGLONG getHDDUsingSize(std::string drive);
+		static const double getHDDUsage(std::string drive);
 		//TODO: getMAC 함수 추가.
 	protected:
 	private:
@@ -46,7 +49,7 @@ namespace MOONG
 			return ltrim(rtrim(s));
 		}
 
-		static const int GetRegSubKeys(const HKEY hKey, const std::string subKey, std::list<std::string>& subKeys);
+		static const BOOL GetDiskFreeSpaceInformation(std::string drive, PULARGE_INTEGER freeBytesAvailableToCaller, PULARGE_INTEGER totalNumberOfBytes, PULARGE_INTEGER totalNumberOfFreeBytes);
 	};
 }
 #endif	// _DEVICEINFORMATION_H_

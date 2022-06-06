@@ -1,6 +1,6 @@
 #include "DeviceInformation.h"
+#include "../../Registry/Registry/Registry.h" // https://github.com/MoongStory/Registry
 
-#include <string>
 #include <strsafe.h>
 
 const std::string MOONG::DeviceInformation::getHDDSerial()
@@ -8,29 +8,22 @@ const std::string MOONG::DeviceInformation::getHDDSerial()
 	// CMD창에서 wmic path win32_physicalmedia get serialnumber
 
 	// Reg에서 값을 얻어오는 방법 (되도록 레지에서 해결)
-	// 문제가 생길경우 아래 주석처리한 코드 참고 (권한 문제 확인 필요)
-	DWORD dwSize = 0;
-	LONG lStatus = 0;
-	char szKeyInfo[MAX_PATH] = { 0 };
 	const std::string szSubKey = "HARDWARE\\DEVICEMAP\\Scsi";
 	std::string ErrorMsg;
 	std::string returnVal;
 	std::string tempSubKey;
-
-	const std::string STR_SCSI_PORT = "scsi port";
-	const std::string STR_SCSI_BUS = "scsi bus";
-	const std::string STR_TARGET_ID = "target id";
+	std::string hdd_serial_number;
 
 	std::list<std::string> listScsiPort;
 
-	if (MOONG::DeviceInformation::GetRegSubKeys(HKEY_LOCAL_MACHINE, szSubKey, listScsiPort) == EXIT_SUCCESS)
+	if (MOONG::Registry::getRegSubKeys(HKEY_LOCAL_MACHINE, szSubKey, listScsiPort) == EXIT_SUCCESS)
 	{
 		for (std::list<std::string>::iterator iterScsiPort = listScsiPort.begin(); iterScsiPort != listScsiPort.end(); ++iterScsiPort)
 		{
 			tempSubKey = *iterScsiPort;
 			std::transform(tempSubKey.begin(), tempSubKey.end(), tempSubKey.begin(), tolower);
 
-			if ((tempSubKey).find(STR_SCSI_PORT) != std::string::npos)
+			if ((tempSubKey).find("scsi port") != std::string::npos)
 			{
 				std::string strSubKeyScsiPort = szSubKey;
 				strSubKeyScsiPort += "\\";
@@ -38,7 +31,7 @@ const std::string MOONG::DeviceInformation::getHDDSerial()
 
 				std::list<std::string> listScsiBus;
 
-				if (MOONG::DeviceInformation::GetRegSubKeys(HKEY_LOCAL_MACHINE, strSubKeyScsiPort, listScsiBus) == EXIT_SUCCESS)
+				if (MOONG::Registry::getRegSubKeys(HKEY_LOCAL_MACHINE, strSubKeyScsiPort, listScsiBus) == EXIT_SUCCESS)
 				{
 					for (std::list<std::string>::iterator iterScsiBus = listScsiBus.begin(); iterScsiBus != listScsiBus.end(); ++iterScsiBus)
 					{
@@ -46,7 +39,7 @@ const std::string MOONG::DeviceInformation::getHDDSerial()
 						tempSubKey = *iterScsiBus;
 						std::transform(tempSubKey.begin(), tempSubKey.end(), tempSubKey.begin(), tolower);
 
-						if ((tempSubKey).find(STR_SCSI_BUS) != std::string::npos)
+						if ((tempSubKey).find("scsi bus") != std::string::npos)
 						{
 							std::string strSubKeyScsiBus = strSubKeyScsiPort;
 							strSubKeyScsiBus += "\\";
@@ -56,7 +49,7 @@ const std::string MOONG::DeviceInformation::getHDDSerial()
 
 							std::list<std::string> listTargetId;
 
-							if (MOONG::DeviceInformation::GetRegSubKeys(HKEY_LOCAL_MACHINE, strSubKeyScsiBus, listTargetId) == EXIT_SUCCESS)
+							if (MOONG::Registry::getRegSubKeys(HKEY_LOCAL_MACHINE, strSubKeyScsiBus, listTargetId) == EXIT_SUCCESS)
 							{
 								for (std::list<std::string>::iterator iterTargetId = listTargetId.begin(); iterTargetId != listTargetId.end(); ++iterTargetId)
 								{
@@ -64,7 +57,7 @@ const std::string MOONG::DeviceInformation::getHDDSerial()
 									tempSubKey = *iterTargetId;
 									std::transform(tempSubKey.begin(), tempSubKey.end(), tempSubKey.begin(), tolower);
 
-									if ((tempSubKey).find(STR_TARGET_ID) != std::string::npos)
+									if ((tempSubKey).find("target id") != std::string::npos)
 									{
 										std::string strSubKeyTargetId = strSubKeyScsiBus;
 										strSubKeyTargetId += "\\";
@@ -72,12 +65,11 @@ const std::string MOONG::DeviceInformation::getHDDSerial()
 
 										//std::cout << strSubKeyTargetId << std::endl;
 
-										HKEY hItem = NULL;
 										std::string strSubKey;
 										strSubKey = strSubKeyTargetId;
 										strSubKey += "\\Logical Unit Id 0";
 
-										if (RegOpenKeyExA(HKEY_LOCAL_MACHINE, strSubKey.c_str(), 0, KEY_READ, &hItem) != ERROR_SUCCESS)
+										if(MOONG::Registry::Read(HKEY_LOCAL_MACHINE, strSubKey, "SerialNumber", hdd_serial_number) != ERROR_SUCCESS)
 										{
 											ErrorMsg += "Can't open subkey [";
 											ErrorMsg += strSubKey;
@@ -91,29 +83,16 @@ const std::string MOONG::DeviceInformation::getHDDSerial()
 										}
 										else
 										{
-											// 추가적으로 얻어진 키에대한 default정보 기본값을 얻는 방법이다.
-											ZeroMemory(szKeyInfo, MAX_PATH);
-											dwSize = sizeof(szKeyInfo);
-											lStatus = RegQueryValueExA(hItem, "SerialNumber", NULL, NULL, (LPBYTE)szKeyInfo, &dwSize);
-											// 만약 RegQueryValueEx()로 특정 문자열값 혹은 바이너리 값을 얻으려면 두 번째 인자에 
-											// 얻고자 하는 데이터의 이름을 넣어주면된다^^
-											if (lStatus == ERROR_SUCCESS)
+											hdd_serial_number = trim(hdd_serial_number);
+
+											//std::cout << output << std::endl;
+
+											if (hdd_serial_number.length() > 0)
 											{
-												//std::cout << szKeyInfo << std::endl;
-
-												std::string strTemp(szKeyInfo);
-												strTemp = trim(strTemp);
-
-												if (strTemp.length() > 0)
-												{
-													returnVal += strTemp;
-													returnVal += ";";
-												}
-
-												//break;
+												returnVal += hdd_serial_number;
+												returnVal += ";";
 											}
 										}
-										RegCloseKey(hItem);
 									}
 								}
 							}
@@ -330,140 +309,105 @@ const std::string MOONG::DeviceInformation::getHDDSerial()
 
 const std::string MOONG::DeviceInformation::getProcessorInformation()
 {
-	HKEY hKey;
+	std::string processor_information;
 
-	DWORD dwType = REG_SZ;
-	DWORD dwSize = 128;
-	long lResult = 0;
-	char szProcessorName[128] = { 0 };
-	std::string strProcessorName;
+	MOONG::Registry::Read(HKEY_LOCAL_MACHINE, "HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0", "ProcessorNameString", processor_information);
 
-	lResult = RegOpenKeyExA(HKEY_LOCAL_MACHINE, "HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0", 0, KEY_READ, &hKey);
-	if (lResult == ERROR_SUCCESS)
-	{
-		RegQueryValueExA(hKey, "ProcessorNameString", NULL, &dwType, (LPBYTE)szProcessorName, &dwSize);
-	}
-
-	//std::cout << "### 테스트 CPU Info" << std::endl;
-	//std::cout << szBuffer << std::endl;
-	//std::cout << "### 테스트 CPU Info end\n" << std::endl;
-
-	strProcessorName = szProcessorName;
-
-	return strProcessorName;
+	return processor_information;
 }
 
-const std::string MOONG::DeviceInformation::getRAMSize()
+const ULONGLONG MOONG::DeviceInformation::getRAMSize()
 {
-	ULONGLONG ramSize;
-	std::string strRamSize;
+	ULONGLONG ram_size = 0;
 
-	if (!GetPhysicallyInstalledSystemMemory(&ramSize))
+	if (!GetPhysicallyInstalledSystemMemory(&ram_size))
 	{
 		std::cout << "뭔가가 잘못되었다.\nMSDN 참고하고 GetLastError()를 확인해보자." << std::endl;
 	}
 
-	//std::cout << "### 테스트 RAM Size" << std::endl;
+	//std::cout << "\n### 테스트 RAM Size" << std::endl;
 	//std::cout << ramSize << " KB" << std::endl;
 	//std::cout << ramSize / 1024 << " MB" << std::endl;
 	//std::cout << ramSize / 1024 / 1024 << " GB" << std::endl;
 	//std::cout << "### 테스트 RAM Size end\n" << std::endl;
 
-	ramSize /= 1024;
-
-	strRamSize = std::to_string(ramSize);
-
-	strRamSize += "MB";
-
-	return strRamSize;
+	return ram_size;
 }
 
-const std::string MOONG::DeviceInformation::getHDDSize()
+const ULONGLONG MOONG::DeviceInformation::getHDDTotalSize(std::string drive)
 {
-	ULARGE_INTEGER freeBytesAvailableToCaller;
-	ULARGE_INTEGER totalNumberOfBytes;
-	ULARGE_INTEGER totalNumberOfFreeBytes;
-	char driveChar[256] = { 0 };
-	UINT driveType = 0;
-	std::string strHDDSizeInfo;
+	ULARGE_INTEGER freeBytesAvailableToCaller = { 0 };
+	ULARGE_INTEGER totalNumberOfBytes = { 0 };
+	ULARGE_INTEGER totalNumberOfFreeBytes = { 0 };
 
-	int count = GetLogicalDriveStringsA(256, driveChar);
+	MOONG::DeviceInformation::GetDiskFreeSpaceInformation(drive, &freeBytesAvailableToCaller, &totalNumberOfBytes, &totalNumberOfFreeBytes);
 
-	for (int i = 0; i < count / 4; i++)
-	{
-		driveType = GetDriveTypeA(driveChar + i * 4);
-
-		if (driveType == DRIVE_FIXED)
-		{
-			GetDiskFreeSpaceExA(driveChar + i * 4, &freeBytesAvailableToCaller, &totalNumberOfBytes, &totalNumberOfFreeBytes);
-
-			//std::cout << "### 테스트 HDD Size" << std::endl;
-			////printf("%I64u\n", freeBytesAvailableToCaller);	// 현재 사용자에게 할당된 용량 중에서 남은 용량
-			////printf("%I64u\n", totalNumberOfBytes);
-			////printf("%I64u\n", totalNumberOfFreeBytes);
-
-			//std::cout << "DRIVE [" << driveChar + i * 4 << "]" << std::endl;
-			//printf("전체\t\t[%I64u]GB, [%I64u]Bytes\n", totalNumberOfBytes.QuadPart / (1024 * 1024 * 1024), totalNumberOfBytes);
-			//printf("사용 가능\t[%I64u]GB, [%I64u]Bytes\n", totalNumberOfFreeBytes.QuadPart / (1024 * 1024 * 1024), totalNumberOfFreeBytes);
-			//printf("사용 중\t\t[%I64u]GB, [%I64u]Bytes\n", (totalNumberOfBytes.QuadPart - totalNumberOfFreeBytes.QuadPart) / (1024 * 1024 * 1024), totalNumberOfBytes.QuadPart - totalNumberOfFreeBytes.QuadPart);
-			//printf("사용량\t\t[%.2lf]%%\n", ((double)totalNumberOfBytes.QuadPart - (double)totalNumberOfFreeBytes.QuadPart) / (double)totalNumberOfBytes.QuadPart * 100.0);
-			//std::cout << "### 테스트 HDD Size end\n" << std::endl;
-
-			//strHDDSizeInfo += driveChar + i * 4;
-			//strHDDSizeInfo += "|";
-			strHDDSizeInfo += std::to_string(totalNumberOfBytes.QuadPart / (1024 * 1024 * 1024));		// (1000 * 1000 * 1000)로 나눠달라는 고객사 요청
-			strHDDSizeInfo += "GB";
-			strHDDSizeInfo += ";";
-			char hddUsage[16] = { 0 };
-			StringCchPrintfA(hddUsage, 16, "%.2lf", ((double)totalNumberOfBytes.QuadPart - (double)totalNumberOfFreeBytes.QuadPart) / (double)totalNumberOfBytes.QuadPart * 100.0);
-			strHDDSizeInfo += hddUsage;	// 사용량 (%)
-			//strHDDSizeInfo += ";";
-
-			break;
-		}
-	}
-
-	return strHDDSizeInfo;
+	return totalNumberOfBytes.QuadPart;
 }
 
-const int MOONG::DeviceInformation::GetRegSubKeys(const HKEY hKey, const std::string subKey, std::list<std::string>& subKeys)
+const ULONGLONG MOONG::DeviceInformation::getHDDAvailableSize(std::string drive)
 {
-	HKEY hkResult = NULL;
-	LONG lStatus = 0;
-	DWORD dwIndex = 0;
-	std::string szKeyName;
-	DWORD cbName = MAX_PATH;
-	int returnValue = EXIT_FAILURE;
+	ULARGE_INTEGER freeBytesAvailableToCaller = { 0 };
+	ULARGE_INTEGER totalNumberOfBytes = { 0 };
+	ULARGE_INTEGER totalNumberOfFreeBytes = { 0 };
 
-	if (RegOpenKeyExA(hKey, subKey.c_str(), 0, KEY_READ, &hkResult) != ERROR_SUCCESS)
+	MOONG::DeviceInformation::GetDiskFreeSpaceInformation(drive, &freeBytesAvailableToCaller, &totalNumberOfBytes, &totalNumberOfFreeBytes);
+
+	return totalNumberOfFreeBytes.QuadPart;
+}
+
+const ULONGLONG MOONG::DeviceInformation::getHDDUsingSize(std::string drive)
+{
+	ULARGE_INTEGER freeBytesAvailableToCaller = { 0 };
+	ULARGE_INTEGER totalNumberOfBytes = { 0 };
+	ULARGE_INTEGER totalNumberOfFreeBytes = { 0 };
+
+	MOONG::DeviceInformation::GetDiskFreeSpaceInformation(drive, &freeBytesAvailableToCaller, &totalNumberOfBytes, &totalNumberOfFreeBytes);
+
+	return totalNumberOfBytes.QuadPart - totalNumberOfFreeBytes.QuadPart;
+}
+
+const double MOONG::DeviceInformation::getHDDUsage(std::string drive)
+{
+	ULARGE_INTEGER freeBytesAvailableToCaller = { 0 };
+	ULARGE_INTEGER totalNumberOfBytes = { 0 };
+	ULARGE_INTEGER totalNumberOfFreeBytes = { 0 };
+
+	double hdd_usage = 0;
+
+	if (MOONG::DeviceInformation::GetDiskFreeSpaceInformation(drive, &freeBytesAvailableToCaller, &totalNumberOfBytes, &totalNumberOfFreeBytes) == TRUE)
 	{
-		returnValue = EXIT_FAILURE;
-	}
-	else
-	{
-		while ((lStatus = RegEnumKeyExA(hkResult,
-			dwIndex,
-			(LPSTR)(szKeyName.c_str()),
-			&cbName,
-			NULL,
-			NULL,
-			NULL,
-			NULL)) != ERROR_NO_MORE_ITEMS)
-		{
-			if (lStatus == ERROR_SUCCESS)
-			{
-				HKEY hItem = NULL;
-				subKeys.push_back(szKeyName.c_str());
-
-				returnValue = EXIT_SUCCESS;
-			}
-
-			dwIndex++;
-			cbName = MAX_PATH;
-		}
-
-		RegCloseKey(hkResult);
+		hdd_usage = ((double)totalNumberOfBytes.QuadPart - (double)totalNumberOfFreeBytes.QuadPart) / (double)totalNumberOfBytes.QuadPart * 100.0;
 	}
 
-	return returnValue;
+	return hdd_usage;
+}
+
+const BOOL MOONG::DeviceInformation::GetDiskFreeSpaceInformation(std::string drive, PULARGE_INTEGER freeBytesAvailableToCaller, PULARGE_INTEGER totalNumberOfBytes, PULARGE_INTEGER totalNumberOfFreeBytes)
+{
+	BOOL return_value = FALSE;
+
+	if (drive.length() == 1 && ((drive.at(0) >= 'a' && drive.at(0) <= 'z') || (drive.at(0) >= 'A' && drive.at(0) <= 'Z')))
+	{
+		drive += ":\\";
+	}
+
+	if (GetDriveTypeA(drive.c_str()) == DRIVE_FIXED)
+	{
+		return_value = GetDiskFreeSpaceExA(drive.c_str(), freeBytesAvailableToCaller, totalNumberOfBytes, totalNumberOfFreeBytes);
+
+		//std::cout << "### 테스트 HDD Space Information" << std::endl;
+		//printf("freeBytesAvailableToCaller[%I64u]\n", freeBytesAvailableToCaller.QuadPart);	// 현재 사용자에게 할당된 용량 중에서 남은 용량
+		//printf("totalNumberOfBytes[%I64u]\n", totalNumberOfBytes.QuadPart);
+		//printf("totalNumberOfFreeBytes[%I64u]\n\n", totalNumberOfFreeBytes.QuadPart);
+
+		//std::cout << "DRIVE [" << drive << "]" << std::endl;
+		//printf("전체\t\t[%I64u]GB, [%I64u]Bytes\n", totalNumberOfBytes.QuadPart / (1024 * 1024 * 1024), totalNumberOfBytes.QuadPart);
+		//printf("사용 가능\t[%I64u]GB, [%I64u]Bytes\n", totalNumberOfFreeBytes.QuadPart / (1024 * 1024 * 1024), totalNumberOfFreeBytes.QuadPart);
+		//printf("사용 중\t\t[%I64u]GB, [%I64u]Bytes\n", (totalNumberOfBytes.QuadPart - totalNumberOfFreeBytes.QuadPart) / (1024 * 1024 * 1024), totalNumberOfBytes.QuadPart - totalNumberOfFreeBytes.QuadPart);
+		//printf("사용량\t\t[%.2lf]%%\n", ((double)totalNumberOfBytes.QuadPart - (double)totalNumberOfFreeBytes.QuadPart) / (double)totalNumberOfBytes.QuadPart * 100.0);
+		//std::cout << "### 테스트 HHDD Space Information end\n" << std::endl;
+	}
+
+	return return_value;
 }
