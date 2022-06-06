@@ -2,8 +2,8 @@
 
 int main()
 {
-	std::list<std::string> hdd_serial_number_list = MOONG::DeviceInformation::getHDDSerial();
-	for (std::list<std::string>::iterator iter_hdd_serial_number_list = hdd_serial_number_list.begin(); iter_hdd_serial_number_list != hdd_serial_number_list.end(); ++iter_hdd_serial_number_list)
+	std::vector<std::string> hdd_serial_number_list = MOONG::DeviceInformation::getHDDSerial();
+	for (std::vector<std::string>::iterator iter_hdd_serial_number_list = hdd_serial_number_list.begin(); iter_hdd_serial_number_list != hdd_serial_number_list.end(); ++iter_hdd_serial_number_list)
 	{
 		std::cout << "getHDDSerial[" << *iter_hdd_serial_number_list << "]" << std::endl;
 	}

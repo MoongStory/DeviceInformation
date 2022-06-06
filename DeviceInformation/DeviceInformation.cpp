@@ -1,9 +1,7 @@
 #include "DeviceInformation.h"
 #include "../../Registry/Registry/Registry.h" // https://github.com/MoongStory/Registry
 
-#include <strsafe.h>
-
-const std::list<std::string> MOONG::DeviceInformation::getHDDSerial()
+const std::vector<std::string> MOONG::DeviceInformation::getHDDSerial()
 {
 	// CMDÃ¢¿¡¼­ wmic path win32_physicalmedia get serialnumber
 
@@ -13,7 +11,7 @@ const std::list<std::string> MOONG::DeviceInformation::getHDDSerial()
 	std::string ErrorMsg;
 	std::string tempSubKey;
 	std::string hdd_serial_number;
-	std::list<std::string> hdd_serial_number_list;
+	std::vector<std::string> hdd_serial_number_list;
 
 	if (MOONG::Registry::getRegSubKeys(HKEY_LOCAL_MACHINE, szSubKey, listScsiPort) == EXIT_SUCCESS)
 	{
