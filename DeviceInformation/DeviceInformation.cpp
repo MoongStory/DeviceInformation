@@ -322,7 +322,7 @@ const ULONGLONG MOONG::DeviceInformation::getRAMSize()
 
 	if (!GetPhysicallyInstalledSystemMemory(&ram_size))
 	{
-		std::cout << "뭔가가 잘못되었다.\nMSDN 참고하고 GetLastError()를 확인해보자." << std::endl;
+		std::cout << "뭔가가 잘못되었다.\nMSDN 참고하고 GetLastError() 확인." << std::endl;
 	}
 
 	//std::cout << "\n### 테스트 RAM Size" << std::endl;
