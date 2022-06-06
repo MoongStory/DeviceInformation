@@ -7,15 +7,15 @@ const std::vector<std::string> MOONG::DeviceInformation::getHDDSerial()
 
 	// Reg에서 값을 얻어오는 방법 (되도록 레지에서 해결)
 	const std::string szSubKey = "HARDWARE\\DEVICEMAP\\Scsi";
-	std::list<std::string> listScsiPort;
+	std::vector<std::string> VectorScsiPort;
 	std::string ErrorMsg;
 	std::string tempSubKey;
 	std::string hdd_serial_number;
-	std::vector<std::string> hdd_serial_number_list;
+	std::vector<std::string> vector_hdd_serial_number;
 
-	if (MOONG::Registry::getRegSubKeys(HKEY_LOCAL_MACHINE, szSubKey, listScsiPort) == EXIT_SUCCESS)
+	if (MOONG::Registry::getRegSubKeys(HKEY_LOCAL_MACHINE, szSubKey, VectorScsiPort) == EXIT_SUCCESS)
 	{
-		for (std::list<std::string>::iterator iterScsiPort = listScsiPort.begin(); iterScsiPort != listScsiPort.end(); ++iterScsiPort)
+		for (std::vector<std::string>::iterator iterScsiPort = VectorScsiPort.begin(); iterScsiPort != VectorScsiPort.end(); ++iterScsiPort)
 		{
 			tempSubKey = *iterScsiPort;
 			std::transform(tempSubKey.begin(), tempSubKey.end(), tempSubKey.begin(), tolower);
@@ -26,11 +26,11 @@ const std::vector<std::string> MOONG::DeviceInformation::getHDDSerial()
 				strSubKeyScsiPort += "\\";
 				strSubKeyScsiPort += *iterScsiPort;
 
-				std::list<std::string> listScsiBus;
+				std::vector<std::string> VectorScsiBus;
 
-				if (MOONG::Registry::getRegSubKeys(HKEY_LOCAL_MACHINE, strSubKeyScsiPort, listScsiBus) == EXIT_SUCCESS)
+				if (MOONG::Registry::getRegSubKeys(HKEY_LOCAL_MACHINE, strSubKeyScsiPort, VectorScsiBus) == EXIT_SUCCESS)
 				{
-					for (std::list<std::string>::iterator iterScsiBus = listScsiBus.begin(); iterScsiBus != listScsiBus.end(); ++iterScsiBus)
+					for (std::vector<std::string>::iterator iterScsiBus = VectorScsiBus.begin(); iterScsiBus != VectorScsiBus.end(); ++iterScsiBus)
 					{
 						//std::cout << *iterScsiBus << std::endl;
 						tempSubKey = *iterScsiBus;
@@ -44,11 +44,11 @@ const std::vector<std::string> MOONG::DeviceInformation::getHDDSerial()
 
 							//std::cout << strSubKeyScsiBus << std::endl;
 
-							std::list<std::string> listTargetId;
+							std::vector<std::string> VectorTargetId;
 
-							if (MOONG::Registry::getRegSubKeys(HKEY_LOCAL_MACHINE, strSubKeyScsiBus, listTargetId) == EXIT_SUCCESS)
+							if (MOONG::Registry::getRegSubKeys(HKEY_LOCAL_MACHINE, strSubKeyScsiBus, VectorTargetId) == EXIT_SUCCESS)
 							{
-								for (std::list<std::string>::iterator iterTargetId = listTargetId.begin(); iterTargetId != listTargetId.end(); ++iterTargetId)
+								for (std::vector<std::string>::iterator iterTargetId = VectorTargetId.begin(); iterTargetId != VectorTargetId.end(); ++iterTargetId)
 								{
 									//std::cout << *iterTargetId << std::endl;
 									tempSubKey = *iterTargetId;
@@ -80,13 +80,13 @@ const std::vector<std::string> MOONG::DeviceInformation::getHDDSerial()
 										}
 										else
 										{
-											hdd_serial_number = trim(hdd_serial_number);
-
-											//std::cout << output << std::endl;
-
 											if (hdd_serial_number.length() > 0)
 											{
-												hdd_serial_number_list.push_back(hdd_serial_number);
+												hdd_serial_number = trim(hdd_serial_number);
+
+												//std::cout << output << std::endl;
+
+												vector_hdd_serial_number.push_back(hdd_serial_number);
 											}
 										}
 									}
@@ -111,7 +111,7 @@ const std::vector<std::string> MOONG::DeviceInformation::getHDDSerial()
 		std::cout << szSubKey << " 하위 키가 없습니다." << std::endl;
 	}
 
-	return hdd_serial_number_list;
+	return vector_hdd_serial_number;
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
