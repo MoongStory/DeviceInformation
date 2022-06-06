@@ -3,18 +3,17 @@
 
 #include <strsafe.h>
 
-const std::string MOONG::DeviceInformation::getHDDSerial()
+const std::list<std::string> MOONG::DeviceInformation::getHDDSerial()
 {
 	// CMD창에서 wmic path win32_physicalmedia get serialnumber
 
 	// Reg에서 값을 얻어오는 방법 (되도록 레지에서 해결)
 	const std::string szSubKey = "HARDWARE\\DEVICEMAP\\Scsi";
+	std::list<std::string> listScsiPort;
 	std::string ErrorMsg;
-	std::string returnVal;
 	std::string tempSubKey;
 	std::string hdd_serial_number;
-
-	std::list<std::string> listScsiPort;
+	std::list<std::string> hdd_serial_number_list;
 
 	if (MOONG::Registry::getRegSubKeys(HKEY_LOCAL_MACHINE, szSubKey, listScsiPort) == EXIT_SUCCESS)
 	{
@@ -89,8 +88,7 @@ const std::string MOONG::DeviceInformation::getHDDSerial()
 
 											if (hdd_serial_number.length() > 0)
 											{
-												returnVal += hdd_serial_number;
-												returnVal += ";";
+												hdd_serial_number_list.push_back(hdd_serial_number);
 											}
 										}
 									}
@@ -115,7 +113,7 @@ const std::string MOONG::DeviceInformation::getHDDSerial()
 		std::cout << szSubKey << " 하위 키가 없습니다." << std::endl;
 	}
 
-	return returnVal;
+	return hdd_serial_number_list;
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -23,7 +23,7 @@ namespace MOONG
 	private:
 
 	public:
-		static const std::string getHDDSerial();
+		static const std::list<std::string> getHDDSerial();
 		static const std::string getProcessorInformation();
 		static const ULONGLONG getRAMSize();
 		static const ULONGLONG getHDDTotalSize(std::string drive);
