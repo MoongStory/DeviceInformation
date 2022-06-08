@@ -30,7 +30,7 @@ namespace MOONG
 		static const ULONGLONG getHDDAvailableSize(std::string drive);
 		static const ULONGLONG getHDDUsingSize(std::string drive);
 		static const double getHDDUsage(std::string drive);
-		//TODO: getMAC 함수 추가.
+		static const std::string getMACAddress();
 	protected:
 	private:
 		static inline std::string& ltrim(std::string& s) {

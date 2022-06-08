@@ -1,6 +1,10 @@
 #include "DeviceInformation.h"
 #include "../../Registry/Registry/Registry.h" // https://github.com/MoongStory/Registry
 
+#include <string>
+
+#include <strsafe.h>
+
 const std::vector<std::string> MOONG::DeviceInformation::getHDDSerial()
 {
 	// CMD창에서 wmic path win32_physicalmedia get serialnumber
@@ -377,6 +381,113 @@ const double MOONG::DeviceInformation::getHDDUsage(std::string drive)
 	}
 
 	return hdd_usage;
+}
+
+//#include <Assert.h>
+#include <Iphlpapi.h>
+#pragma comment(lib, "iphlpapi.lib")
+
+const std::string MOONG::DeviceInformation::getMACAddress()
+{
+	// Declare and initialize variables.
+	std::string mac_address;
+	char mac_address_hexadecimal_format[18] = { 0 };
+	DWORD dwSize = 0;
+	DWORD dwRetVal = 0;
+
+	unsigned int i = 0, j = 0;
+
+	// variables used for GetIfTable and GetIfEntry.
+	MIB_IFTABLE* pIfTable = NULL;
+	MIB_IFROW* pIfRow = NULL;
+
+	// Allocate memory for our pointers.
+	pIfTable = (MIB_IFTABLE*)HeapAlloc(GetProcessHeap(), 0, (sizeof(MIB_IFTABLE)));
+	if (pIfTable == NULL)
+	{
+		return "Error allocating memory needed to call GetIfTable";
+	}
+
+	// Make an initial call to GetIfTable to get the necessary size into dwSize.
+	dwSize = sizeof(MIB_IFTABLE);
+	if (GetIfTable(pIfTable, &dwSize, FALSE) == ERROR_INSUFFICIENT_BUFFER)
+	{
+		HeapFree(GetProcessHeap(), 0, (pIfTable));
+
+		pIfTable = (MIB_IFTABLE*)HeapAlloc(GetProcessHeap(), 0, (dwSize));
+
+		if (pIfTable == NULL)
+		{
+			return "Error allocating memory needed to call GetIfTable";
+		}
+	}
+
+	// Make a second call to GetIfTable to get the actual data we want.
+	if ((dwRetVal = GetIfTable(pIfTable, &dwSize, FALSE)) == NO_ERROR)
+	{
+		//printf("\tNum Entries: %ld\n\n", pIfTable->dwNumEntries);
+
+		for (i = 0; i < pIfTable->dwNumEntries; i++)
+		{
+			pIfRow = (MIB_IFROW*)&pIfTable->table[i];
+
+			// "WAN" 필터링.
+			if (strstr((const char*)pIfRow->bDescr, "Loop") || strstr((const char*)pIfRow->bDescr, "PPP") || strstr((const char*)pIfRow->bDescr, "WAN"))
+			{
+				continue;
+			}
+
+			// 무선 LAN 필터링.
+			if ((pIfRow->dwPhysAddrLen == 6) && (pIfRow->dwType == MIB_IF_TYPE_ETHERNET || pIfRow->dwType == IF_TYPE_IEEE80211))
+			{
+				if (pIfRow->dwOperStatus != IF_OPER_STATUS_OPERATIONAL)
+				{
+					continue;
+				}
+
+				memset(mac_address_hexadecimal_format, 0, sizeof(mac_address_hexadecimal_format));
+
+				StringCbPrintfA(mac_address_hexadecimal_format, sizeof(mac_address_hexadecimal_format), "%02X:%02X:%02X:%02X:%02X:%02X",
+					pIfRow->bPhysAddr[0],
+					pIfRow->bPhysAddr[1],
+					pIfRow->bPhysAddr[2],
+					pIfRow->bPhysAddr[3],
+					pIfRow->bPhysAddr[4],
+					pIfRow->bPhysAddr[5]);
+
+				mac_address += mac_address_hexadecimal_format;
+
+				if (mac_address.empty() != true)
+				{
+					break;
+				}
+			}
+		}
+	}
+	else
+	{
+		if (pIfTable != NULL)
+		{
+			HeapFree(GetProcessHeap(), 0, (pIfTable));
+
+			pIfTable = NULL;
+		}
+
+		mac_address = "GetIfTable failed with error[";
+		mac_address += std::to_string(dwRetVal);
+		mac_address += "]";
+
+		return mac_address;
+	}
+
+	if (pIfTable != NULL)
+	{
+		HeapFree(GetProcessHeap(), 0, (pIfTable));
+
+		pIfTable = NULL;
+	}
+
+	return mac_address;
 }
 
 const BOOL MOONG::DeviceInformation::GetDiskFreeSpaceInformation(std::string drive, PULARGE_INTEGER freeBytesAvailableToCaller, PULARGE_INTEGER totalNumberOfBytes, PULARGE_INTEGER totalNumberOfFreeBytes)
