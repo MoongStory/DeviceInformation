@@ -2,6 +2,8 @@
 #include "../../Registry/Registry/Registry.h" // https://github.com/MoongStory/Registry
 
 #include <string>
+#include <Iphlpapi.h>
+#pragma comment(lib, "iphlpapi.lib")
 
 #include <strsafe.h>
 
@@ -12,7 +14,7 @@ const std::vector<std::string> MOONG::DeviceInformation::getHDDSerial()
 	// Reg에서 값을 얻어오는 방법 (되도록 레지에서 해결)
 	const std::string szSubKey = "HARDWARE\\DEVICEMAP\\Scsi";
 	std::vector<std::string> VectorScsiPort;
-	std::string ErrorMsg;
+	std::string error_message;
 	std::string tempSubKey;
 	std::string hdd_serial_number;
 	std::vector<std::string> vector_hdd_serial_number;
@@ -72,13 +74,13 @@ const std::vector<std::string> MOONG::DeviceInformation::getHDDSerial()
 
 										if(MOONG::Registry::Read(HKEY_LOCAL_MACHINE, strSubKey, "SerialNumber", hdd_serial_number) != ERROR_SUCCESS)
 										{
-											ErrorMsg += "Can't open subkey [";
-											ErrorMsg += strSubKey;
-											ErrorMsg += "]";
+											error_message += "Can't open subkey [";
+											error_message += strSubKey;
+											error_message += "]";
 
 											//std::cout << ErrorMsg.c_str() << std::endl;
 
-											ErrorMsg.clear();
+											error_message.clear();
 
 											continue;
 										}
@@ -383,10 +385,6 @@ const double MOONG::DeviceInformation::getHDDUsage(std::string drive)
 	return hdd_usage;
 }
 
-//#include <Assert.h>
-#include <Iphlpapi.h>
-#pragma comment(lib, "iphlpapi.lib")
-
 const std::string MOONG::DeviceInformation::getMACAddress()
 {
 	// Declare and initialize variables.
@@ -445,9 +443,9 @@ const std::string MOONG::DeviceInformation::getMACAddress()
 					continue;
 				}
 
-				memset(mac_address_hexadecimal_format, 0, sizeof(mac_address_hexadecimal_format));
+				ZeroMemory(mac_address_hexadecimal_format, sizeof(mac_address_hexadecimal_format));
 
-				StringCbPrintfA(mac_address_hexadecimal_format, sizeof(mac_address_hexadecimal_format), "%02X:%02X:%02X:%02X:%02X:%02X",
+				StringCbPrintfA(mac_address_hexadecimal_format, sizeof(mac_address_hexadecimal_format), "%02X-%02X-%02X-%02X-%02X-%02X",
 					pIfRow->bPhysAddr[0],
 					pIfRow->bPhysAddr[1],
 					pIfRow->bPhysAddr[2],
@@ -488,6 +486,91 @@ const std::string MOONG::DeviceInformation::getMACAddress()
 	}
 
 	return mac_address;
+}
+
+const std::vector<std::string> MOONG::DeviceInformation::getMACAddressAll()
+{
+	// It is possible for an adapter to have multiple
+	// IPv4 addresses, gateways, and secondary WINS servers
+	// assigned to the adapter. 
+	//
+	// Note that this sample code only prints out the 
+	// first entry for the IP address/mask, and gateway, and
+	// the primary and secondary WINS server for each adapter. 
+
+	// Declare and initialize variables.
+	std::vector<std::string> mac_address_list;
+	char mac_address_hexadecimal_format[18] = { 0 };
+	PIP_ADAPTER_INFO pAdapterInfo = NULL;
+	PIP_ADAPTER_INFO pAdapter = NULL;
+	DWORD dwRetVal = 0;
+	UINT i = 0;
+
+	ULONG ulOutBufLen = sizeof(IP_ADAPTER_INFO);
+
+	pAdapterInfo = (IP_ADAPTER_INFO*)HeapAlloc(GetProcessHeap(), 0, (sizeof(IP_ADAPTER_INFO)));
+
+	if (pAdapterInfo == NULL)
+	{
+		mac_address_list.push_back("Error allocating memory needed to call GetAdaptersinfo");
+
+		return mac_address_list;
+	}
+
+	// Make an initial call to GetAdaptersInfo to get the necessary size into the ulOutBufLen variable.
+	if (GetAdaptersInfo(pAdapterInfo, &ulOutBufLen) == ERROR_BUFFER_OVERFLOW)
+	{
+		HeapFree(GetProcessHeap(), 0, (pAdapterInfo));
+
+		pAdapterInfo = (IP_ADAPTER_INFO*)HeapAlloc(GetProcessHeap(), 0, (ulOutBufLen));
+
+		if (pAdapterInfo == NULL)
+		{
+			mac_address_list.push_back("Error allocating memory needed to call GetAdaptersinfo");
+
+			return mac_address_list;
+		}
+	}
+
+	if ((dwRetVal = GetAdaptersInfo(pAdapterInfo, &ulOutBufLen)) == NO_ERROR)
+	{
+		pAdapter = pAdapterInfo;
+
+		while (pAdapter)
+		{
+			ZeroMemory(mac_address_hexadecimal_format, sizeof(mac_address_hexadecimal_format));
+
+			StringCchPrintfA(mac_address_hexadecimal_format, sizeof(mac_address_hexadecimal_format), "%02X-%02X-%02X-%02X-%02X-%02X",
+				pAdapter->Address[0], pAdapter->Address[1],
+				pAdapter->Address[2], pAdapter->Address[3],
+				pAdapter->Address[4], pAdapter->Address[5]);
+
+			if (strcmp(mac_address_hexadecimal_format, "00-00-00-00-00-00") != 0)
+			{
+				mac_address_list.push_back(mac_address_hexadecimal_format);
+			}
+
+			pAdapter = pAdapter->Next;
+		}
+	}
+	else
+	{
+		std::string error_message;
+		error_message = "GetAdaptersInfo failed with error[";
+		error_message += std::to_string(dwRetVal);
+		error_message += "]";
+
+		mac_address_list.push_back(error_message);
+
+		return mac_address_list;
+	}
+
+	if (pAdapterInfo)
+	{
+		HeapFree(GetProcessHeap(), 0, (pAdapterInfo));
+	}
+
+	return mac_address_list;
 }
 
 const BOOL MOONG::DeviceInformation::GetDiskFreeSpaceInformation(std::string drive, PULARGE_INTEGER freeBytesAvailableToCaller, PULARGE_INTEGER totalNumberOfBytes, PULARGE_INTEGER totalNumberOfFreeBytes)
