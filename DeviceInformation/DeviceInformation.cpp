@@ -88,7 +88,7 @@ const std::vector<std::string> MOONG::DeviceInformation::getHDDSerial()
 										{
 											if (hdd_serial_number.length() > 0)
 											{
-												hdd_serial_number = trim(hdd_serial_number);
+												trim(hdd_serial_number);
 
 												//std::cout << output << std::endl;
 

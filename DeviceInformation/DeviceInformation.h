@@ -34,20 +34,42 @@ namespace MOONG
 		static const std::vector<std::string> getMACAddressAll();
 	protected:
 	private:
-		static inline std::string& ltrim(std::string& s) {
-			s.erase(s.begin(), std::find_if(s.begin(), s.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
+		// trim from start (in place)
+		static inline void ltrim(std::string& s) {
+			s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
+				return !std::isspace(ch);
+				}));
+		}
+
+		// trim from end (in place)
+		static inline void rtrim(std::string& s) {
+			s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) {
+				return !std::isspace(ch);
+				}).base(), s.end());
+		}
+
+		// trim from both ends (in place)
+		static inline void trim(std::string& s) {
+			ltrim(s);
+			rtrim(s);
+		}
+
+		// trim from start (copying)
+		static inline std::string ltrim_copy(std::string s) {
+			ltrim(s);
 			return s;
 		}
 
-		//뒤에 있는 개행 문자 제거
-		static inline std::string& rtrim(std::string& s) {
-			s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
+		// trim from end (copying)
+		static inline std::string rtrim_copy(std::string s) {
+			rtrim(s);
 			return s;
 		}
 
-		//양쪽 끝의 개행 문자 제거
-		static inline std::string& trim(std::string& s) {
-			return ltrim(rtrim(s));
+		// trim from both ends (copying)
+		static inline std::string trim_copy(std::string s) {
+			trim(s);
+			return s;
 		}
 
 		static const BOOL GetDiskFreeSpaceInformation(std::string drive, PULARGE_INTEGER freeBytesAvailableToCaller, PULARGE_INTEGER totalNumberOfBytes, PULARGE_INTEGER totalNumberOfFreeBytes);
