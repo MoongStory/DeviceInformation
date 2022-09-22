@@ -1,5 +1,7 @@
 #include "DeviceInformation.h"
-#include "../../Registry/Registry/Registry.h" // https://github.com/MoongStory/Registry
+
+// https://github.com/MoongStory/Registry
+#include "../../Registry/Registry/Registry.h"
 
 #include <string>
 #include <Iphlpapi.h>
