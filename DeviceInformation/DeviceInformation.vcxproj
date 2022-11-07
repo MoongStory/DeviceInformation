@@ -129,11 +129,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\ConvertDataType\ConvertDataType\ConvertDataType.cpp" />
+    <ClCompile Include="..\..\Exception\Exception\Exception.cpp" />
     <ClCompile Include="..\..\Registry\Registry\Registry.cpp" />
     <ClCompile Include="DeviceInformation.cpp" />
     <ClCompile Include="Test.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\ConvertDataType\ConvertDataType\ConvertDataType.h" />
+    <ClInclude Include="..\..\Exception\Exception\Exception.h" />
     <ClInclude Include="..\..\Registry\Registry\Registry.h" />
     <ClInclude Include="DeviceInformation.h" />
   </ItemGroup>

@@ -24,6 +24,12 @@
     <ClCompile Include="..\..\Registry\Registry\Registry.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Exception\Exception\Exception.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ConvertDataType\ConvertDataType\ConvertDataType.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DeviceInformation.h">
@@ -31,6 +37,12 @@
     </ClInclude>
     <ClInclude Include="..\..\Registry\Registry\Registry.h">
       <Filter>소스 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Exception\Exception\Exception.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\ConvertDataType\ConvertDataType\ConvertDataType.h">
+      <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

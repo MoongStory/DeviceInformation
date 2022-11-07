@@ -16,7 +16,6 @@ const std::vector<std::string> MOONG::DeviceInformation::getHDDSerial()
 	// Reg에서 값을 얻어오는 방법 (되도록 레지에서 해결)
 	const std::string szSubKey = "HARDWARE\\DEVICEMAP\\Scsi";
 	std::vector<std::string> VectorScsiPort;
-	std::string error_message;
 	std::string tempSubKey;
 	std::string hdd_serial_number;
 	std::vector<std::string> vector_hdd_serial_number;
@@ -76,13 +75,13 @@ const std::vector<std::string> MOONG::DeviceInformation::getHDDSerial()
 
 										if(MOONG::Registry::Read(HKEY_LOCAL_MACHINE, strSubKey, "SerialNumber", hdd_serial_number) != ERROR_SUCCESS)
 										{
-											error_message += "Can't open subkey [";
-											error_message += strSubKey;
-											error_message += "]";
+											//std::string error_message = "Can't open subkey [";
+											//error_message += strSubKey;
+											//error_message += "]";
 
-											//std::cout << ErrorMsg.c_str() << std::endl;
+											//std::cout << error_message.c_str() << std::endl;
 
-											error_message.clear();
+											//error_message.clear();
 
 											continue;
 										}
@@ -91,8 +90,6 @@ const std::vector<std::string> MOONG::DeviceInformation::getHDDSerial()
 											if (hdd_serial_number.length() > 0)
 											{
 												trim(hdd_serial_number);
-
-												//std::cout << output << std::endl;
 
 												vector_hdd_serial_number.push_back(hdd_serial_number);
 											}
@@ -311,22 +308,28 @@ const std::vector<std::string> MOONG::DeviceInformation::getHDDSerial()
 	//return returnVal;   // Program successfully completed.
 }
 
-const std::string MOONG::DeviceInformation::getProcessorInformation()
+const std::string MOONG::DeviceInformation::getProcessorInformation() noexcept(false)
 {
 	std::string processor_information;
+	
+	const std::string sub_key = "HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0";
+	const std::string value = "ProcessorNameString";
 
-	MOONG::Registry::Read(HKEY_LOCAL_MACHINE, "HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0", "ProcessorNameString", processor_information);
+	if (MOONG::Registry::Read(HKEY_LOCAL_MACHINE, sub_key, value, processor_information) != ERROR_SUCCESS)
+	{
+		throw MOONG::ExceptionRegistryRead(HKEY_LOCAL_MACHINE, sub_key, value);
+	}
 
 	return processor_information;
 }
 
-const ULONGLONG MOONG::DeviceInformation::getRAMSize()
+const ULONGLONG MOONG::DeviceInformation::getRAMSize() noexcept(false)
 {
 	ULONGLONG ram_size = 0;
 
 	if (!GetPhysicallyInstalledSystemMemory(&ram_size))
 	{
-		std::cout << "뭔가가 잘못되었다.\nMSDN 참고하고 GetLastError() 확인." << std::endl;
+		throw MOONG::ExceptionFunctionCallFailed<DWORD>("GetPhysicallyInstalledSystemMemory", GetLastError());
 	}
 
 	//std::cout << "\n### 테스트 RAM Size" << std::endl;
@@ -338,40 +341,61 @@ const ULONGLONG MOONG::DeviceInformation::getRAMSize()
 	return ram_size;
 }
 
-const ULONGLONG MOONG::DeviceInformation::getHDDTotalSize(std::string drive)
+const ULONGLONG MOONG::DeviceInformation::getHDDTotalSize(std::string drive) noexcept(false)
 {
 	ULARGE_INTEGER freeBytesAvailableToCaller = { 0 };
 	ULARGE_INTEGER totalNumberOfBytes = { 0 };
 	ULARGE_INTEGER totalNumberOfFreeBytes = { 0 };
 
-	MOONG::DeviceInformation::GetDiskFreeSpaceInformation(drive, &freeBytesAvailableToCaller, &totalNumberOfBytes, &totalNumberOfFreeBytes);
+	try
+	{
+		MOONG::DeviceInformation::GetDiskFreeSpaceInformation(drive, &freeBytesAvailableToCaller, &totalNumberOfBytes, &totalNumberOfFreeBytes);
+	}
+	catch (const MOONG::ExceptionFunctionCallFailed<DWORD>& exception)
+	{
+		throw exception;
+	}
 
 	return totalNumberOfBytes.QuadPart;
 }
 
-const ULONGLONG MOONG::DeviceInformation::getHDDAvailableSize(std::string drive)
+const ULONGLONG MOONG::DeviceInformation::getHDDAvailableSize(std::string drive) noexcept(false)
 {
 	ULARGE_INTEGER freeBytesAvailableToCaller = { 0 };
 	ULARGE_INTEGER totalNumberOfBytes = { 0 };
 	ULARGE_INTEGER totalNumberOfFreeBytes = { 0 };
 
-	MOONG::DeviceInformation::GetDiskFreeSpaceInformation(drive, &freeBytesAvailableToCaller, &totalNumberOfBytes, &totalNumberOfFreeBytes);
+	try
+	{
+		MOONG::DeviceInformation::GetDiskFreeSpaceInformation(drive, &freeBytesAvailableToCaller, &totalNumberOfBytes, &totalNumberOfFreeBytes);
+	}
+	catch (const MOONG::ExceptionFunctionCallFailed<DWORD>& exception)
+	{
+		throw exception;
+	}
 
 	return totalNumberOfFreeBytes.QuadPart;
 }
 
-const ULONGLONG MOONG::DeviceInformation::getHDDUsingSize(std::string drive)
+const ULONGLONG MOONG::DeviceInformation::getHDDUsingSize(std::string drive) noexcept(false)
 {
 	ULARGE_INTEGER freeBytesAvailableToCaller = { 0 };
 	ULARGE_INTEGER totalNumberOfBytes = { 0 };
 	ULARGE_INTEGER totalNumberOfFreeBytes = { 0 };
 
-	MOONG::DeviceInformation::GetDiskFreeSpaceInformation(drive, &freeBytesAvailableToCaller, &totalNumberOfBytes, &totalNumberOfFreeBytes);
+	try
+	{
+		MOONG::DeviceInformation::GetDiskFreeSpaceInformation(drive, &freeBytesAvailableToCaller, &totalNumberOfBytes, &totalNumberOfFreeBytes);
+	}
+	catch (const MOONG::ExceptionFunctionCallFailed<DWORD>& exception)
+	{
+		throw exception;
+	}
 
 	return totalNumberOfBytes.QuadPart - totalNumberOfFreeBytes.QuadPart;
 }
 
-const double MOONG::DeviceInformation::getHDDUsage(std::string drive)
+const double MOONG::DeviceInformation::getHDDUsage(std::string drive) noexcept(false)
 {
 	ULARGE_INTEGER freeBytesAvailableToCaller = { 0 };
 	ULARGE_INTEGER totalNumberOfBytes = { 0 };
@@ -379,15 +403,22 @@ const double MOONG::DeviceInformation::getHDDUsage(std::string drive)
 
 	double hdd_usage = 0;
 
-	if (MOONG::DeviceInformation::GetDiskFreeSpaceInformation(drive, &freeBytesAvailableToCaller, &totalNumberOfBytes, &totalNumberOfFreeBytes) == TRUE)
+	try
 	{
-		hdd_usage = ((double)totalNumberOfBytes.QuadPart - (double)totalNumberOfFreeBytes.QuadPart) / (double)totalNumberOfBytes.QuadPart * 100.0;
+		if (MOONG::DeviceInformation::GetDiskFreeSpaceInformation(drive, &freeBytesAvailableToCaller, &totalNumberOfBytes, &totalNumberOfFreeBytes) == TRUE)
+		{
+			hdd_usage = ((double)totalNumberOfBytes.QuadPart - (double)totalNumberOfFreeBytes.QuadPart) / (double)totalNumberOfBytes.QuadPart * 100.0;
+		}
+	}
+	catch (const MOONG::ExceptionFunctionCallFailed<DWORD>& exception)
+	{
+		throw exception;
 	}
 
 	return hdd_usage;
 }
 
-const std::string MOONG::DeviceInformation::getMACAddress()
+const std::string MOONG::DeviceInformation::getMACAddress() noexcept(false)
 {
 	// Declare and initialize variables.
 	std::string mac_address;
@@ -405,7 +436,7 @@ const std::string MOONG::DeviceInformation::getMACAddress()
 	pIfTable = (MIB_IFTABLE*)HeapAlloc(GetProcessHeap(), 0, (sizeof(MIB_IFTABLE)));
 	if (pIfTable == NULL)
 	{
-		return "Error allocating memory needed to call GetIfTable";
+		throw MOONG::ExceptionFunctionCallFailed<DWORD>("HeapAlloc #0");
 	}
 
 	// Make an initial call to GetIfTable to get the necessary size into dwSize.
@@ -418,7 +449,7 @@ const std::string MOONG::DeviceInformation::getMACAddress()
 
 		if (pIfTable == NULL)
 		{
-			return "Error allocating memory needed to call GetIfTable";
+			throw MOONG::ExceptionFunctionCallFailed<DWORD>("HeapAlloc #1");
 		}
 	}
 
@@ -473,11 +504,7 @@ const std::string MOONG::DeviceInformation::getMACAddress()
 			pIfTable = NULL;
 		}
 
-		mac_address = "GetIfTable failed with error[";
-		mac_address += std::to_string(dwRetVal);
-		mac_address += "]";
-
-		return mac_address;
+		throw MOONG::ExceptionFunctionCallFailed<DWORD>("GetIfTable", dwRetVal, false);
 	}
 
 	if (pIfTable != NULL)
@@ -490,7 +517,7 @@ const std::string MOONG::DeviceInformation::getMACAddress()
 	return mac_address;
 }
 
-const std::vector<std::string> MOONG::DeviceInformation::getMACAddressAll()
+const std::vector<std::string> MOONG::DeviceInformation::getMACAddressAll() noexcept(false)
 {
 	// It is possible for an adapter to have multiple
 	// IPv4 addresses, gateways, and secondary WINS servers
@@ -514,9 +541,7 @@ const std::vector<std::string> MOONG::DeviceInformation::getMACAddressAll()
 
 	if (pAdapterInfo == NULL)
 	{
-		mac_address_list.push_back("Error allocating memory needed to call GetAdaptersinfo");
-
-		return mac_address_list;
+		throw MOONG::ExceptionFunctionCallFailed<DWORD>("HeapAlloc #0");
 	}
 
 	// Make an initial call to GetAdaptersInfo to get the necessary size into the ulOutBufLen variable.
@@ -528,9 +553,7 @@ const std::vector<std::string> MOONG::DeviceInformation::getMACAddressAll()
 
 		if (pAdapterInfo == NULL)
 		{
-			mac_address_list.push_back("Error allocating memory needed to call GetAdaptersinfo");
-
-			return mac_address_list;
+			throw MOONG::ExceptionFunctionCallFailed<DWORD>("HeapAlloc #1");
 		}
 	}
 
@@ -557,14 +580,7 @@ const std::vector<std::string> MOONG::DeviceInformation::getMACAddressAll()
 	}
 	else
 	{
-		std::string error_message;
-		error_message = "GetAdaptersInfo failed with error[";
-		error_message += std::to_string(dwRetVal);
-		error_message += "]";
-
-		mac_address_list.push_back(error_message);
-
-		return mac_address_list;
+		throw MOONG::ExceptionFunctionCallFailed<DWORD>("GetAdaptersInfo", dwRetVal, false);
 	}
 
 	if (pAdapterInfo)
@@ -575,7 +591,7 @@ const std::vector<std::string> MOONG::DeviceInformation::getMACAddressAll()
 	return mac_address_list;
 }
 
-const BOOL MOONG::DeviceInformation::GetDiskFreeSpaceInformation(std::string drive, PULARGE_INTEGER freeBytesAvailableToCaller, PULARGE_INTEGER totalNumberOfBytes, PULARGE_INTEGER totalNumberOfFreeBytes)
+const BOOL MOONG::DeviceInformation::GetDiskFreeSpaceInformation(std::string drive, PULARGE_INTEGER freeBytesAvailableToCaller, PULARGE_INTEGER totalNumberOfBytes, PULARGE_INTEGER totalNumberOfFreeBytes) noexcept(false)
 {
 	BOOL return_value = FALSE;
 
@@ -587,6 +603,10 @@ const BOOL MOONG::DeviceInformation::GetDiskFreeSpaceInformation(std::string dri
 	if (GetDriveTypeA(drive.c_str()) == DRIVE_FIXED)
 	{
 		return_value = GetDiskFreeSpaceExA(drive.c_str(), freeBytesAvailableToCaller, totalNumberOfBytes, totalNumberOfFreeBytes);
+		if (return_value == FALSE)
+		{
+			throw MOONG::ExceptionFunctionCallFailed<DWORD>("GetDiskFreeSpaceExA", GetLastError());
+		}
 
 		//std::cout << "### 테스트 HDD Space Information" << std::endl;
 		//printf("freeBytesAvailableToCaller[%I64u]\n", freeBytesAvailableToCaller.QuadPart);	// 현재 사용자에게 할당된 용량 중에서 남은 용량

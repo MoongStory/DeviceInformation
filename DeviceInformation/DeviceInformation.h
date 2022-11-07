@@ -14,6 +14,9 @@
 #include <vector>
 #include <algorithm>
 
+// https://github.com/MoongStory/Exception
+#include "../../Exception/Exception/Exception.h"
+
 namespace MOONG
 {
 	class DeviceInformation
@@ -24,14 +27,14 @@ namespace MOONG
 
 	public:
 		static const std::vector<std::string> getHDDSerial();
-		static const std::string getProcessorInformation();
-		static const ULONGLONG getRAMSize();
-		static const ULONGLONG getHDDTotalSize(std::string drive);
-		static const ULONGLONG getHDDAvailableSize(std::string drive);
-		static const ULONGLONG getHDDUsingSize(std::string drive);
-		static const double getHDDUsage(std::string drive);
-		static const std::string getMACAddress();
-		static const std::vector<std::string> getMACAddressAll();
+		static const std::string getProcessorInformation() noexcept(false);
+		static const ULONGLONG getRAMSize() noexcept(false);
+		static const ULONGLONG getHDDTotalSize(std::string drive) noexcept(false);
+		static const ULONGLONG getHDDAvailableSize(std::string drive) noexcept(false);
+		static const ULONGLONG getHDDUsingSize(std::string drive) noexcept(false);
+		static const double getHDDUsage(std::string drive) noexcept(false);
+		static const std::string getMACAddress() noexcept(false);
+		static const std::vector<std::string> getMACAddressAll() noexcept(false);
 	protected:
 	private:
 		// trim from start (in place)
@@ -72,7 +75,7 @@ namespace MOONG
 			return s;
 		}
 
-		static const BOOL GetDiskFreeSpaceInformation(std::string drive, PULARGE_INTEGER freeBytesAvailableToCaller, PULARGE_INTEGER totalNumberOfBytes, PULARGE_INTEGER totalNumberOfFreeBytes);
+		static const BOOL GetDiskFreeSpaceInformation(std::string drive, PULARGE_INTEGER freeBytesAvailableToCaller, PULARGE_INTEGER totalNumberOfBytes, PULARGE_INTEGER totalNumberOfFreeBytes) noexcept(false);
 	};
 }
 #endif	// _DEVICEINFORMATION_H_
