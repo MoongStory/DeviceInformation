@@ -14,9 +14,6 @@
 #include <vector>
 #include <algorithm>
 
-// https://github.com/MoongStory/Exception
-#include "../../Exception/Exception/Exception.h"
-
 namespace MOONG
 {
 	class DeviceInformation

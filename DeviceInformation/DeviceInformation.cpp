@@ -3,6 +3,9 @@
 // https://github.com/MoongStory/Registry
 #include "../../Registry/Registry/Registry.h"
 
+// https://github.com/MoongStory/Exception
+#include "../../Exception/Exception/Exception.h"
+
 #include <string>
 #include <Iphlpapi.h>
 #pragma comment(lib, "iphlpapi.lib")
