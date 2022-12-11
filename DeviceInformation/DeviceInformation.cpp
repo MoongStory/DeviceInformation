@@ -1,15 +1,42 @@
 #include "DeviceInformation.h"
 
-// https://github.com/MoongStory/Registry
 #include "../../Registry/Registry/Registry.h"
+#include "../../ConvertDataType/ConvertDataType/ConvertDataType.h"
+#include "../../StringTool/StringTool/StringTool.h"
 
 #include <string>
 #include <Iphlpapi.h>
 #pragma comment(lib, "iphlpapi.lib")
 
+#include <WinSock.h>
+#pragma comment(lib, "Ws2_32.lib")
+
 #include <strsafe.h>
 
-const std::vector<std::string> MOONG::DeviceInformation::getHDDSerial()
+const bool MOONG::DeviceInformation::GetComputerName(std::string& computer_name)
+{
+	char buffer[256] = {0};
+	DWORD size = sizeof(buffer);
+
+	bool return_value = GetComputerNameExA(ComputerNamePhysicalDnsHostname, buffer, &size) ? true : false;
+
+	computer_name = buffer;
+
+	return return_value;
+}
+
+const ULONGLONG MOONG::DeviceInformation::GetHDDAvailableSize(std::string drive)
+{
+	ULARGE_INTEGER freeBytesAvailableToCaller = { 0 };
+	ULARGE_INTEGER totalNumberOfBytes = { 0 };
+	ULARGE_INTEGER totalNumberOfFreeBytes = { 0 };
+
+	MOONG::DeviceInformation::GetDiskFreeSpaceInformation(drive, &freeBytesAvailableToCaller, &totalNumberOfBytes, &totalNumberOfFreeBytes);
+
+	return totalNumberOfFreeBytes.QuadPart;
+}
+
+const std::vector<std::string> MOONG::DeviceInformation::GetHDDSerial()
 {
 	// CMD창에서 wmic path win32_physicalmedia get serialnumber
 
@@ -89,7 +116,7 @@ const std::vector<std::string> MOONG::DeviceInformation::getHDDSerial()
 										{
 											if (hdd_serial_number.length() > 0)
 											{
-												trim(hdd_serial_number);
+												MOONG::StringTool::trim(hdd_serial_number);
 
 												vector_hdd_serial_number.push_back(hdd_serial_number);
 											}
@@ -308,34 +335,7 @@ const std::vector<std::string> MOONG::DeviceInformation::getHDDSerial()
 	//return returnVal;   // Program successfully completed.
 }
 
-const std::string MOONG::DeviceInformation::getProcessorInformation()
-{
-	std::string processor_information;
-	
-	const std::string sub_key = "HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0";
-	const std::string value = "ProcessorNameString";
-
-	MOONG::Registry::Read(HKEY_LOCAL_MACHINE, sub_key, value, processor_information);
-
-	return processor_information;
-}
-
-const ULONGLONG MOONG::DeviceInformation::getRAMSize()
-{
-	ULONGLONG ram_size = 0;
-
-	GetPhysicallyInstalledSystemMemory(&ram_size);
-
-	//std::cout << "\n### 테스트 RAM Size" << std::endl;
-	//std::cout << ramSize << " KB" << std::endl;
-	//std::cout << ramSize / 1024 << " MB" << std::endl;
-	//std::cout << ramSize / 1024 / 1024 << " GB" << std::endl;
-	//std::cout << "### 테스트 RAM Size end\n" << std::endl;
-
-	return ram_size;
-}
-
-const ULONGLONG MOONG::DeviceInformation::getHDDTotalSize(std::string drive)
+const ULONGLONG MOONG::DeviceInformation::GetHDDTotalSize(std::string drive)
 {
 	ULARGE_INTEGER freeBytesAvailableToCaller = { 0 };
 	ULARGE_INTEGER totalNumberOfBytes = { 0 };
@@ -346,29 +346,7 @@ const ULONGLONG MOONG::DeviceInformation::getHDDTotalSize(std::string drive)
 	return totalNumberOfBytes.QuadPart;
 }
 
-const ULONGLONG MOONG::DeviceInformation::getHDDAvailableSize(std::string drive)
-{
-	ULARGE_INTEGER freeBytesAvailableToCaller = { 0 };
-	ULARGE_INTEGER totalNumberOfBytes = { 0 };
-	ULARGE_INTEGER totalNumberOfFreeBytes = { 0 };
-
-	MOONG::DeviceInformation::GetDiskFreeSpaceInformation(drive, &freeBytesAvailableToCaller, &totalNumberOfBytes, &totalNumberOfFreeBytes);
-
-	return totalNumberOfFreeBytes.QuadPart;
-}
-
-const ULONGLONG MOONG::DeviceInformation::getHDDUsingSize(std::string drive)
-{
-	ULARGE_INTEGER freeBytesAvailableToCaller = { 0 };
-	ULARGE_INTEGER totalNumberOfBytes = { 0 };
-	ULARGE_INTEGER totalNumberOfFreeBytes = { 0 };
-
-	MOONG::DeviceInformation::GetDiskFreeSpaceInformation(drive, &freeBytesAvailableToCaller, &totalNumberOfBytes, &totalNumberOfFreeBytes);
-
-	return totalNumberOfBytes.QuadPart - totalNumberOfFreeBytes.QuadPart;
-}
-
-const double MOONG::DeviceInformation::getHDDUsage(std::string drive)
+const double MOONG::DeviceInformation::GetHDDUsage(std::string drive)
 {
 	ULARGE_INTEGER freeBytesAvailableToCaller = { 0 };
 	ULARGE_INTEGER totalNumberOfBytes = { 0 };
@@ -384,7 +362,18 @@ const double MOONG::DeviceInformation::getHDDUsage(std::string drive)
 	return hdd_usage;
 }
 
-const std::string MOONG::DeviceInformation::getMACAddress()
+const ULONGLONG MOONG::DeviceInformation::GetHDDUsingSize(std::string drive)
+{
+	ULARGE_INTEGER freeBytesAvailableToCaller = { 0 };
+	ULARGE_INTEGER totalNumberOfBytes = { 0 };
+	ULARGE_INTEGER totalNumberOfFreeBytes = { 0 };
+
+	MOONG::DeviceInformation::GetDiskFreeSpaceInformation(drive, &freeBytesAvailableToCaller, &totalNumberOfBytes, &totalNumberOfFreeBytes);
+
+	return totalNumberOfBytes.QuadPart - totalNumberOfFreeBytes.QuadPart;
+}
+
+const std::string MOONG::DeviceInformation::GetMACAddress()
 {
 	// Declare and initialize variables.
 	std::string mac_address;
@@ -471,7 +460,7 @@ const std::string MOONG::DeviceInformation::getMACAddress()
 		}
 
 		mac_address = "GetIfTable failed with error[";
-		mac_address += std::to_string(dwRetVal);
+		mac_address += MOONG::ConvertDataType::toString(dwRetVal);
 		mac_address += "]";
 
 		return mac_address;
@@ -487,7 +476,7 @@ const std::string MOONG::DeviceInformation::getMACAddress()
 	return mac_address;
 }
 
-const std::vector<std::string> MOONG::DeviceInformation::getMACAddressAll()
+const std::vector<std::string> MOONG::DeviceInformation::GetMACAddressAll()
 {
 	// It is possible for an adapter to have multiple
 	// IPv4 addresses, gateways, and secondary WINS servers
@@ -556,7 +545,7 @@ const std::vector<std::string> MOONG::DeviceInformation::getMACAddressAll()
 	{
 		std::string error_message;
 		error_message = "GetAdaptersInfo failed with error[";
-		error_message += std::to_string(dwRetVal);
+		error_message += MOONG::ConvertDataType::toString(dwRetVal);
 		error_message += "]";
 
 		mac_address_list.push_back(error_message);
@@ -570,6 +559,33 @@ const std::vector<std::string> MOONG::DeviceInformation::getMACAddressAll()
 	}
 
 	return mac_address_list;
+}
+
+const std::string MOONG::DeviceInformation::GetProcessorInformation()
+{
+	std::string processor_information;
+
+	const std::string sub_key = "HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0";
+	const std::string value = "ProcessorNameString";
+
+	MOONG::Registry::Read(HKEY_LOCAL_MACHINE, sub_key, value, processor_information);
+
+	return processor_information;
+}
+
+const ULONGLONG MOONG::DeviceInformation::GetRAMSize()
+{
+	ULONGLONG ram_size = 0;
+
+	GetPhysicallyInstalledSystemMemory(&ram_size);
+
+	//std::cout << "\n### 테스트 RAM Size" << std::endl;
+	//std::cout << ramSize << " KB" << std::endl;
+	//std::cout << ramSize / 1024 << " MB" << std::endl;
+	//std::cout << ramSize / 1024 / 1024 << " GB" << std::endl;
+	//std::cout << "### 테스트 RAM Size end\n" << std::endl;
+
+	return ram_size;
 }
 
 const BOOL MOONG::DeviceInformation::GetDiskFreeSpaceInformation(std::string drive, PULARGE_INTEGER freeBytesAvailableToCaller, PULARGE_INTEGER totalNumberOfBytes, PULARGE_INTEGER totalNumberOfFreeBytes)

@@ -131,12 +131,14 @@
   <ItemGroup>
     <ClCompile Include="..\..\ConvertDataType\ConvertDataType\ConvertDataType.cpp" />
     <ClCompile Include="..\..\Registry\Registry\Registry.cpp" />
+    <ClCompile Include="..\..\StringTool\StringTool\StringTool.cpp" />
     <ClCompile Include="DeviceInformation.cpp" />
     <ClCompile Include="Test.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\ConvertDataType\ConvertDataType\ConvertDataType.h" />
     <ClInclude Include="..\..\Registry\Registry\Registry.h" />
+    <ClInclude Include="..\..\StringTool\StringTool\StringTool.h" />
     <ClInclude Include="DeviceInformation.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
