@@ -5,7 +5,7 @@ int main()
 	try
 	{
 		std::string computer_name;
-		MOONG::DeviceInformation::GetComputerName(computer_name);
+		MOONG::DeviceInformation::GetComputerName(computer_name, ComputerNameDnsFullyQualified);
 		std::cout << "GetComputerName[" << computer_name.c_str() << "]" << std::endl;
 
 		std::cout << std::endl;

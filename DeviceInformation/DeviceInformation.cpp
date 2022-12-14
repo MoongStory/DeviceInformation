@@ -13,12 +13,13 @@
 
 #include <strsafe.h>
 
-const bool MOONG::DeviceInformation::GetComputerName(std::string& computer_name)
+const bool MOONG::DeviceInformation::GetComputerName(std::string& computer_name, const COMPUTER_NAME_FORMAT NameType/* = ComputerNamePhysicalDnsHostname*/)
 {
 	char buffer[256] = {0};
 	DWORD size = sizeof(buffer);
 
-	bool return_value = GetComputerNameExA(ComputerNamePhysicalDnsHostname, buffer, &size) ? true : false;
+	// TODO: 첫번째 파라미터 GetComputerName 호출 시 파라미터로 받도록 (파라미터 변수 초기화 사용)
+	bool return_value = GetComputerNameExA(NameType, buffer, &size) ? true : false;
 
 	computer_name = buffer;
 

@@ -1,4 +1,3 @@
-#pragma once
 // https://github.com/MoongStory/DeviceInformation
 
 #if _MSC_VER > 1000
@@ -23,7 +22,7 @@ namespace MOONG
 	private:
 
 	public:
-		static const bool GetComputerName(std::string& computer_name);
+		static const bool GetComputerName(std::string& computer_name, const COMPUTER_NAME_FORMAT NameType = ComputerNamePhysicalDnsHostname);
 		static const ULONGLONG GetHDDAvailableSize(std::string drive);
 		static const std::vector<std::string> GetHDDSerial();
 		static const ULONGLONG GetHDDTotalSize(std::string drive);
