@@ -356,7 +356,11 @@ const double MOONG::DeviceInformation::GetHDDUsage(std::string drive)
 
 	if (MOONG::DeviceInformation::GetDiskFreeSpaceInformation(drive, &freeBytesAvailableToCaller, &totalNumberOfBytes, &totalNumberOfFreeBytes) == TRUE)
 	{
+#if _MSC_VER > 1200
 		hdd_usage = ((double)totalNumberOfBytes.QuadPart - (double)totalNumberOfFreeBytes.QuadPart) / (double)totalNumberOfBytes.QuadPart * 100.0;
+#else
+		hdd_usage = (MOONG::ConvertDataType::unsigned_int64_to_double(totalNumberOfBytes.QuadPart) - MOONG::ConvertDataType::unsigned_int64_to_double(totalNumberOfFreeBytes.QuadPart)) / MOONG::ConvertDataType::unsigned_int64_to_double(totalNumberOfBytes.QuadPart) * 100.0;
+#endif
 	}
 
 	return hdd_usage;
@@ -577,6 +581,7 @@ const ULONGLONG MOONG::DeviceInformation::GetRAMSize()
 {
 	ULONGLONG ram_size = 0;
 
+#if _MSC_VER > 1200
 	GetPhysicallyInstalledSystemMemory(&ram_size);
 
 	//std::cout << "\n### 테스트 RAM Size" << std::endl;
@@ -584,6 +589,7 @@ const ULONGLONG MOONG::DeviceInformation::GetRAMSize()
 	//std::cout << ramSize / 1024 << " MB" << std::endl;
 	//std::cout << ramSize / 1024 / 1024 << " GB" << std::endl;
 	//std::cout << "### 테스트 RAM Size end\n" << std::endl;
+#endif
 
 	return ram_size;
 }
