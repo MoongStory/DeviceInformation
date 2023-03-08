@@ -13,7 +13,7 @@
 
 #include <strsafe.h>
 
-const bool MOONG::DeviceInformation::GetComputerName(std::string& computer_name, const COMPUTER_NAME_FORMAT NameType/* = ComputerNamePhysicalDnsHostname*/)
+const bool MOONG::DeviceInformation::get_computer_name(std::string& computer_name, const COMPUTER_NAME_FORMAT NameType/* = ComputerNamePhysicalDnsHostname*/)
 {
 	char buffer[256] = {0};
 	DWORD size = sizeof(buffer);
@@ -25,18 +25,18 @@ const bool MOONG::DeviceInformation::GetComputerName(std::string& computer_name,
 	return return_value;
 }
 
-const ULONGLONG MOONG::DeviceInformation::GetHDDAvailableSize(std::string drive)
+const ULONGLONG MOONG::DeviceInformation::get_hdd_available_size(std::string drive)
 {
 	ULARGE_INTEGER freeBytesAvailableToCaller = { 0 };
 	ULARGE_INTEGER totalNumberOfBytes = { 0 };
 	ULARGE_INTEGER totalNumberOfFreeBytes = { 0 };
 
-	MOONG::DeviceInformation::GetDiskFreeSpaceInformation(drive, &freeBytesAvailableToCaller, &totalNumberOfBytes, &totalNumberOfFreeBytes);
+	MOONG::DeviceInformation::get_disk_free_space_information(drive, &freeBytesAvailableToCaller, &totalNumberOfBytes, &totalNumberOfFreeBytes);
 
 	return totalNumberOfFreeBytes.QuadPart;
 }
 
-const std::vector<std::string> MOONG::DeviceInformation::GetHDDSerial()
+const std::vector<std::string> MOONG::DeviceInformation::get_hdd_serial()
 {
 	// CMDÃ¢¿¡¼­ wmic path win32_physicalmedia get serialnumber
 
@@ -335,18 +335,18 @@ const std::vector<std::string> MOONG::DeviceInformation::GetHDDSerial()
 	//return returnVal;   // Program successfully completed.
 }
 
-const ULONGLONG MOONG::DeviceInformation::GetHDDTotalSize(std::string drive)
+const ULONGLONG MOONG::DeviceInformation::get_hdd_total_size(std::string drive)
 {
 	ULARGE_INTEGER freeBytesAvailableToCaller = { 0 };
 	ULARGE_INTEGER totalNumberOfBytes = { 0 };
 	ULARGE_INTEGER totalNumberOfFreeBytes = { 0 };
 
-	MOONG::DeviceInformation::GetDiskFreeSpaceInformation(drive, &freeBytesAvailableToCaller, &totalNumberOfBytes, &totalNumberOfFreeBytes);
+	MOONG::DeviceInformation::get_disk_free_space_information(drive, &freeBytesAvailableToCaller, &totalNumberOfBytes, &totalNumberOfFreeBytes);
 
 	return totalNumberOfBytes.QuadPart;
 }
 
-const double MOONG::DeviceInformation::GetHDDUsage(std::string drive)
+const double MOONG::DeviceInformation::get_hdd_usage(std::string drive)
 {
 	ULARGE_INTEGER freeBytesAvailableToCaller = { 0 };
 	ULARGE_INTEGER totalNumberOfBytes = { 0 };
@@ -354,7 +354,7 @@ const double MOONG::DeviceInformation::GetHDDUsage(std::string drive)
 
 	double hdd_usage = 0;
 
-	if (MOONG::DeviceInformation::GetDiskFreeSpaceInformation(drive, &freeBytesAvailableToCaller, &totalNumberOfBytes, &totalNumberOfFreeBytes) == TRUE)
+	if (MOONG::DeviceInformation::get_disk_free_space_information(drive, &freeBytesAvailableToCaller, &totalNumberOfBytes, &totalNumberOfFreeBytes) == TRUE)
 	{
 #if _MSC_VER > 1200
 		hdd_usage = ((double)totalNumberOfBytes.QuadPart - (double)totalNumberOfFreeBytes.QuadPart) / (double)totalNumberOfBytes.QuadPart * 100.0;
@@ -366,18 +366,18 @@ const double MOONG::DeviceInformation::GetHDDUsage(std::string drive)
 	return hdd_usage;
 }
 
-const ULONGLONG MOONG::DeviceInformation::GetHDDUsingSize(std::string drive)
+const ULONGLONG MOONG::DeviceInformation::get_hdd_using_size(std::string drive)
 {
 	ULARGE_INTEGER freeBytesAvailableToCaller = { 0 };
 	ULARGE_INTEGER totalNumberOfBytes = { 0 };
 	ULARGE_INTEGER totalNumberOfFreeBytes = { 0 };
 
-	MOONG::DeviceInformation::GetDiskFreeSpaceInformation(drive, &freeBytesAvailableToCaller, &totalNumberOfBytes, &totalNumberOfFreeBytes);
+	MOONG::DeviceInformation::get_disk_free_space_information(drive, &freeBytesAvailableToCaller, &totalNumberOfBytes, &totalNumberOfFreeBytes);
 
 	return totalNumberOfBytes.QuadPart - totalNumberOfFreeBytes.QuadPart;
 }
 
-const std::string MOONG::DeviceInformation::GetMACAddress()
+const std::string MOONG::DeviceInformation::get_mac_address()
 {
 	// Declare and initialize variables.
 	std::string mac_address;
@@ -464,7 +464,7 @@ const std::string MOONG::DeviceInformation::GetMACAddress()
 		}
 
 		mac_address = "GetIfTable failed with error[";
-		mac_address += MOONG::ConvertDataType::toString(dwRetVal);
+		mac_address += MOONG::ConvertDataType::to_string(dwRetVal);
 		mac_address += "]";
 
 		return mac_address;
@@ -480,7 +480,7 @@ const std::string MOONG::DeviceInformation::GetMACAddress()
 	return mac_address;
 }
 
-const std::vector<std::string> MOONG::DeviceInformation::GetMACAddressAll()
+const std::vector<std::string> MOONG::DeviceInformation::get_mac_address_all()
 {
 	// It is possible for an adapter to have multiple
 	// IPv4 addresses, gateways, and secondary WINS servers
@@ -549,7 +549,7 @@ const std::vector<std::string> MOONG::DeviceInformation::GetMACAddressAll()
 	{
 		std::string error_message;
 		error_message = "GetAdaptersInfo failed with error[";
-		error_message += MOONG::ConvertDataType::toString(dwRetVal);
+		error_message += MOONG::ConvertDataType::to_string(dwRetVal);
 		error_message += "]";
 
 		mac_address_list.push_back(error_message);
@@ -565,7 +565,7 @@ const std::vector<std::string> MOONG::DeviceInformation::GetMACAddressAll()
 	return mac_address_list;
 }
 
-const std::string MOONG::DeviceInformation::GetProcessorInformation()
+const std::string MOONG::DeviceInformation::get_processor_information()
 {
 	std::string processor_information;
 
@@ -577,7 +577,7 @@ const std::string MOONG::DeviceInformation::GetProcessorInformation()
 	return processor_information;
 }
 
-const ULONGLONG MOONG::DeviceInformation::GetRAMSize()
+const ULONGLONG MOONG::DeviceInformation::get_ram_size()
 {
 	ULONGLONG ram_size = 0;
 
@@ -594,7 +594,7 @@ const ULONGLONG MOONG::DeviceInformation::GetRAMSize()
 	return ram_size;
 }
 
-const BOOL MOONG::DeviceInformation::GetDiskFreeSpaceInformation(std::string drive, PULARGE_INTEGER freeBytesAvailableToCaller, PULARGE_INTEGER totalNumberOfBytes, PULARGE_INTEGER totalNumberOfFreeBytes)
+const BOOL MOONG::DeviceInformation::get_disk_free_space_information(std::string drive, PULARGE_INTEGER freeBytesAvailableToCaller, PULARGE_INTEGER totalNumberOfBytes, PULARGE_INTEGER totalNumberOfFreeBytes)
 {
 	BOOL return_value = FALSE;
 

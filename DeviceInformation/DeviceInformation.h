@@ -46,19 +46,19 @@ namespace MOONG
 	private:
 
 	public:
-		static const bool GetComputerName(std::string& computer_name, const COMPUTER_NAME_FORMAT NameType = ComputerNamePhysicalDnsHostname);
-		static const ULONGLONG GetHDDAvailableSize(std::string drive);
-		static const std::vector<std::string> GetHDDSerial();
-		static const ULONGLONG GetHDDTotalSize(std::string drive);
-		static const double GetHDDUsage(std::string drive);
-		static const ULONGLONG GetHDDUsingSize(std::string drive);
-		static const std::string GetMACAddress();
-		static const std::vector<std::string> GetMACAddressAll();
-		static const std::string GetProcessorInformation();
-		static const ULONGLONG GetRAMSize();
+		static const bool get_computer_name(std::string& computer_name, const COMPUTER_NAME_FORMAT NameType = ComputerNamePhysicalDnsHostname);
+		static const ULONGLONG get_hdd_available_size(std::string drive);
+		static const std::vector<std::string> get_hdd_serial();
+		static const ULONGLONG get_hdd_total_size(std::string drive);
+		static const double get_hdd_usage(std::string drive);
+		static const ULONGLONG get_hdd_using_size(std::string drive);
+		static const std::string get_mac_address();
+		static const std::vector<std::string> get_mac_address_all();
+		static const std::string get_processor_information();
+		static const ULONGLONG get_ram_size();
 	protected:
 	private:
-		static const BOOL GetDiskFreeSpaceInformation(std::string drive, PULARGE_INTEGER freeBytesAvailableToCaller, PULARGE_INTEGER totalNumberOfBytes, PULARGE_INTEGER totalNumberOfFreeBytes);
+		static const BOOL get_disk_free_space_information(std::string drive, PULARGE_INTEGER freeBytesAvailableToCaller, PULARGE_INTEGER totalNumberOfBytes, PULARGE_INTEGER totalNumberOfFreeBytes);
 	};
 }
 #endif	// _DEVICEINFORMATION_H_
